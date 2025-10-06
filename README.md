@@ -3,6 +3,10 @@
 A complete microservices-based architecture using **Node.js**, **Express**, **Docker Compose**, and **Prometheus monitoring**.  
 This project demonstrates **API Gateway routing**, **service-to-service communication**, **logging**, and **metrics collection**.
 
+
+<img width="829" height="489" alt="image" src="https://github.com/user-attachments/assets/e2848aad-f8cc-4bec-a93a-503b1bbf0928" />
+
+
 ---
 
 ## 🚀 Architecture Overview
