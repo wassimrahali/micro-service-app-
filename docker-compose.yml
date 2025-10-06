@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+  # === USER SERVICE ===
+  db-user:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: usersdb
+    volumes:
+      - ./user-service/init.sql:/docker-entrypoint-initdb.d/init.sql  
+    networks:
+      - microservice-net
+
+  user-service:
+    build: ./user-service
+    depends_on:
+      - db-user
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db-user:5432/usersdb
+    ports:
+      - "3001:3001"
+    networks:
+      - microservice-net
+
+  # === ORDER SERVICE ===
+  db-order:
+    image: mongo:7
+    networks:
+      - microservice-net
+
+  order-service:
+    build: ./order-service
+    depends_on:
+      - db-order
+      - user-service
+    environment:
+      - USER_SERVICE_URL=http://user-service:3001
+      - MONGO_URL=mongodb://db-order:27017/ordersdb
+    ports:
+      - "3002:3002"
+    networks:
+      - microservice-net
+
+  # === PRODUCT SERVICE ===
+  db-product:
+    image: mongo:7
+    networks:
+      - microservice-net
+
+  product-service:
+    build: ./product-service
+    depends_on:
+      - db-product
+    environment:
+      - MONGO_URL=mongodb://db-product:27017/productsdb
+    ports:
+      - "3003:3003"
+    networks:
+      - microservice-net
+
+  # === API GATEWAY ===
+  api-gateway:
+    build: ./api-gateway
+    depends_on:
+      - user-service
+      - order-service
+      - product-service
+    environment:
+      - USER_SERVICE_URL=http://user-service:3001
+      - ORDER_SERVICE_URL=http://order-service:3002
+      - PRODUCT_SERVICE_URL=http://product-service:3003
+    ports:
+      - "3000:3000"
+    networks:
+      - microservice-net
+
+  # === PROMETHEUS ===
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    networks:
+      - microservice-net
+
+  # === GRAFANA (Optional but recommended) ===
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3004:3000"
+    networks:
+      - microservice-net
+
+networks:
+  microservice-net:
+    driver: bridge
