@@ -1,0 +1,9 @@
+# Enforce Windows-style (CRLF) line endings for Markdown and normalize defaults
+# This tells Git to check files as text and write them with CRLF in the working directory
+*.md text eol=crlf
+# Optionally normalize common text formats to the platform default
+*.js text
+*.json text
+*.yml text
+*.yaml text
+*.sh text eol=lf
